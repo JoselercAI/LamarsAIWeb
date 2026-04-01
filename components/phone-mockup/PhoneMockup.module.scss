@@ -1,0 +1,117 @@
+.shell {
+  position: relative;
+  width: min(100%, 21rem);
+  margin-inline: auto;
+}
+
+.phone {
+  position: relative;
+  padding: 0.9rem;
+  border-radius: 2.4rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)),
+    #0a0d13;
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.45);
+}
+
+.notch {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  width: 7rem;
+  height: 1.25rem;
+  border-radius: 0 0 1rem 1rem;
+  transform: translateX(-50%);
+  background: #0a0d13;
+}
+
+.screen {
+  display: grid;
+  gap: 0.9rem;
+  min-height: 39rem;
+  padding: 2rem 1rem 1.1rem;
+  border-radius: 1.7rem;
+  background:
+    radial-gradient(circle at top right, rgba(0, 120, 212, 0.2), transparent 34%),
+    linear-gradient(180deg, rgba(8, 12, 20, 0.96), rgba(12, 16, 24, 0.98));
+}
+
+.screen h2 {
+  margin: 0;
+  font-size: clamp(1.45rem, 3vw, 1.8rem);
+  line-height: 1;
+}
+
+.topline {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.card {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem;
+  border-radius: 1.35rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+}
+
+.card h3 {
+  margin: 0;
+  color: var(--color-primary-soft);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.card ul {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card li {
+  color: var(--color-text-subtle);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.floatCard {
+  position: absolute;
+  top: 18%;
+  left: -2rem;
+  display: none;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-md);
+  background: rgba(14, 18, 28, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow-cloud);
+  color: var(--color-text-subtle);
+  font-size: 0.85rem;
+}
+
+.dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-strong));
+  box-shadow: 0 0 1rem rgba(0, 120, 212, 0.5);
+}
+
+@media (min-width: 1024px) {
+  .shell {
+    width: min(100%, 23rem);
+  }
+
+  .floatCard {
+    display: inline-flex;
+  }
+}

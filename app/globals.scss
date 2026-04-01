@@ -1,0 +1,49 @@
+:root {
+  --page-max: 74rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.75rem;
+  --color-bg: #050912;
+  --color-surface: #0d131d;
+  --color-surface-strong: #101826;
+  --color-text: #f5f7fb;
+  --color-text-subtle: #b8c2d1;
+  --color-text-muted: #7e8a9d;
+  --color-border: rgba(195, 213, 240, 0.12);
+  --color-primary: #005faa;
+  --color-primary-strong: #0078d4;
+  --color-primary-soft: #8fcbff;
+  --shadow-cloud: 0 28px 80px rgba(0, 0, 0, 0.28);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  color: var(--color-text);
+  background:
+    radial-gradient(circle at top left, rgba(0, 120, 212, 0.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(0, 95, 170, 0.15), transparent 22%),
+    linear-gradient(180deg, #050912 0%, #09111b 50%, #050912 100%);
+}
+
+body::selection {
+  color: var(--color-text);
+  background: rgba(0, 120, 212, 0.4);
+}
+
+a,
+button,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}

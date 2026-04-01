@@ -1,0 +1,286 @@
+.page {
+  width: min(100% - 2rem, var(--page-max));
+  margin: 0 auto;
+  padding: 6rem 0 3rem;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(16px);
+  background: rgba(6, 10, 16, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.headerInner,
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: min(100% - 2rem, var(--page-max));
+  margin: 0 auto;
+  padding: 1rem 0;
+}
+
+.logo {
+  color: var(--color-text);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.nav {
+  display: none;
+  gap: 1.25rem;
+}
+
+.navLink {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.headerCta {
+  min-height: 2.9rem;
+  padding-inline: 1rem;
+  font-size: 0.85rem;
+}
+
+.hero,
+.section,
+.finalCta {
+  display: grid;
+  gap: 1.5rem;
+  padding: 2rem 0;
+}
+
+.hero {
+  align-items: center;
+  min-height: calc(100svh - 5rem);
+}
+
+.heroCopy {
+  display: grid;
+  gap: 1rem;
+}
+
+.badge,
+.kicker,
+.stepNumber,
+.heroMeta,
+.cardEyebrow,
+.faqItem summary {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.badge,
+.kicker {
+  color: var(--color-primary-soft);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.badgeDot {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 999px;
+  background: #f34c62;
+}
+
+.hero h1,
+.finalCta h2 {
+  display: grid;
+  gap: 0.15em;
+  margin: 0;
+  font-size: clamp(2.8rem, 9vw, 6rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+.heroText,
+.sectionHeading p,
+.problemCard p,
+.stepCard p,
+.trustCard p,
+.faqItem p,
+.finalCta p,
+.footer p {
+  margin: 0;
+  color: var(--color-text-subtle);
+  line-height: 1.65;
+}
+
+.heroActions,
+.finalActions {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.heroMeta {
+  color: var(--color-text-muted);
+}
+
+.sectionHeading {
+  display: grid;
+  gap: 0.7rem;
+  max-width: 42rem;
+}
+
+.sectionHeading h2 {
+  margin: 0;
+  font-size: clamp(2rem, 7vw, 3.6rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+}
+
+.problemGrid,
+.steps,
+.trustGrid,
+.faqList,
+.footerLinks {
+  display: grid;
+  gap: 1rem;
+}
+
+.problemCard,
+.stepCard,
+.trustCard,
+.faqItem,
+.finalCta {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.problemCard,
+.stepCard,
+.trustCard,
+.faqItem {
+  padding: 1.25rem;
+}
+
+.problemCard,
+.trustCard,
+.stepCard {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.cardEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.stepCard h3 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.stepNumber {
+  margin: 0;
+  color: var(--color-primary);
+}
+
+.stepCard span {
+  color: var(--color-primary-soft);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.trustGrid {
+  align-items: start;
+}
+
+.faqItem summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--color-text);
+  cursor: pointer;
+  list-style: none;
+}
+
+.faqItem summary::-webkit-details-marker {
+  display: none;
+}
+
+.faqItem p {
+  margin-top: 0.9rem;
+}
+
+.finalCta {
+  padding: 1.35rem;
+  background:
+    radial-gradient(circle at top right, rgba(0, 120, 212, 0.2), transparent 32%),
+    var(--color-surface-strong);
+}
+
+.footer {
+  padding-bottom: 2rem;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.footerLinks a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding-top: 7rem;
+  }
+
+  .nav {
+    display: flex;
+  }
+
+  .hero {
+    grid-template-columns: minmax(0, 1.05fr) minmax(18rem, 22rem);
+    gap: 2.5rem;
+    padding-block: 3rem 4rem;
+  }
+
+  .problemGrid,
+  .trustGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .finalCta,
+  .footer {
+    grid-template-columns: minmax(0, 1.2fr) auto;
+  }
+
+  .footer {
+    display: grid;
+    align-items: end;
+  }
+
+  .footerLinks {
+    grid-auto-flow: column;
+    justify-content: center;
+  }
+
+  .finalActions {
+    align-content: end;
+    justify-items: start;
+  }
+}
