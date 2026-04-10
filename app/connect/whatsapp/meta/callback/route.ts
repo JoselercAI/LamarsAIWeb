@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
   buildResultUrl,
-  getOptionalParam,
+  extractSessionInfoFromSearchParams,
   getWhatsAppConnectConfig,
+  parseStoredSessionInfo,
+  WHATSAPP_SESSION_COOKIE,
 } from "@/lib/whatsapp-connect";
 
 export async function GET(request: NextRequest) {
@@ -53,23 +55,44 @@ export async function GET(request: NextRequest) {
   }
 
   const { apiBaseUrl, redirectUri } = getWhatsAppConnectConfig();
+  const querySessionInfo = extractSessionInfoFromSearchParams(searchParams);
+  const storedSessionInfo = parseStoredSessionInfo(
+    request.cookies.get(WHATSAPP_SESSION_COOKIE)?.value,
+  );
+  const cookieSessionInfo =
+    storedSessionInfo?.state === state ? storedSessionInfo : null;
+  const finalSessionInfo = {
+    phoneNumberId:
+      querySessionInfo.phoneNumberId || cookieSessionInfo?.phoneNumberId,
+    wabaId: querySessionInfo.wabaId || cookieSessionInfo?.wabaId,
+    metaBusinessAccountId:
+      querySessionInfo.metaBusinessAccountId ||
+      cookieSessionInfo?.metaBusinessAccountId,
+    displayPhoneNumber:
+      querySessionInfo.displayPhoneNumber || cookieSessionInfo?.displayPhoneNumber,
+  };
+
+  console.log(
+    "[whatsapp-connect:callback] receivedSessionInfo",
+    cookieSessionInfo ?? querySessionInfo,
+  );
+  console.log("[whatsapp-connect:callback] sessionFields", {
+    phoneNumberId: finalSessionInfo.phoneNumberId ?? null,
+    wabaId: finalSessionInfo.wabaId ?? null,
+    metaBusinessAccountId: finalSessionInfo.metaBusinessAccountId ?? null,
+    displayPhoneNumber: finalSessionInfo.displayPhoneNumber ?? null,
+    querySource: querySessionInfo.source ?? null,
+    cookieSource: cookieSessionInfo?.source ?? null,
+  });
+
   const payload = {
     state,
     code,
     redirectUri,
-    phoneNumberId: getOptionalParam(searchParams, "phoneNumberId", "phone_number_id"),
-    wabaId: getOptionalParam(searchParams, "wabaId", "waba_id"),
-    metaBusinessAccountId: getOptionalParam(
-      searchParams,
-      "metaBusinessAccountId",
-      "meta_business_account_id",
-      "business_id",
-    ),
-    displayPhoneNumber: getOptionalParam(
-      searchParams,
-      "displayPhoneNumber",
-      "display_phone_number",
-    ),
+    phoneNumberId: finalSessionInfo.phoneNumberId,
+    wabaId: finalSessionInfo.wabaId,
+    metaBusinessAccountId: finalSessionInfo.metaBusinessAccountId,
+    displayPhoneNumber: finalSessionInfo.displayPhoneNumber,
   };
 
   console.log("[whatsapp-connect:callback] backendPayload", payload);
@@ -102,7 +125,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!response.ok) {
-      return NextResponse.redirect(
+      const redirectResponse = NextResponse.redirect(
         buildResultUrl("error", {
           message:
             (typeof backendJson?.message === "string" && backendJson.message) ||
@@ -114,9 +137,23 @@ export async function GET(request: NextRequest) {
         }),
         302,
       );
+
+      redirectResponse.cookies.set(WHATSAPP_SESSION_COOKIE, "", {
+        maxAge: 0,
+        path: "/",
+      });
+
+      return redirectResponse;
     }
 
-    return NextResponse.redirect(buildResultUrl("success"), 302);
+    const redirectResponse = NextResponse.redirect(buildResultUrl("success"), 302);
+
+    redirectResponse.cookies.set(WHATSAPP_SESSION_COOKIE, "", {
+      maxAge: 0,
+      path: "/",
+    });
+
+    return redirectResponse;
   } catch (error) {
     const message =
       error instanceof Error
@@ -125,12 +162,19 @@ export async function GET(request: NextRequest) {
 
     console.log("[whatsapp-connect:callback] completeError", message);
 
-    return NextResponse.redirect(
+    const redirectResponse = NextResponse.redirect(
       buildResultUrl("error", {
         message,
         backendStatus: "network_error",
       }),
       302,
     );
+
+    redirectResponse.cookies.set(WHATSAPP_SESSION_COOKIE, "", {
+      maxAge: 0,
+      path: "/",
+    });
+
+    return redirectResponse;
   }
 }

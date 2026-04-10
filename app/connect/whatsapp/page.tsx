@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { siteConfig } from "@/lib/site-config";
 
+import { EmbeddedSignupSessionCapture } from "./EmbeddedSignupSessionCapture";
 import styles from "./whatsapp-connect.module.scss";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -26,6 +27,7 @@ export default async function WhatsAppConnectPage({
 
   return (
     <main className={styles.page}>
+      {state ? <EmbeddedSignupSessionCapture state={state} /> : null}
       <p className={styles.eyebrow}>LAMARS onboarding</p>
       <h1 className={styles.title}>Connect your WhatsApp business account</h1>
       <p className={styles.lede}>

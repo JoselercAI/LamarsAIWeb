@@ -8,6 +8,24 @@ type CompletePayload = {
   displayPhoneNumber?: string;
 };
 
+type EmbeddedSignupMessage = {
+  type?: string;
+  event?: string;
+  data?: Record<string, unknown>;
+};
+
+export type WhatsAppSessionInfo = {
+  state?: string;
+  phoneNumberId?: string;
+  wabaId?: string;
+  metaBusinessAccountId?: string;
+  displayPhoneNumber?: string;
+  source?: string;
+  receivedAt?: string;
+};
+
+export const WHATSAPP_SESSION_COOKIE = "lamars_wa_session_info";
+
 function required(name: string) {
   const value = process.env[name]?.trim();
 
@@ -64,6 +82,101 @@ export function buildMetaSignupUrl(state: string) {
   url.searchParams.set("state", state);
 
   return url;
+}
+
+function pickString(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
+function pickFirstString(values: unknown) {
+  if (!Array.isArray(values)) return undefined;
+
+  return values
+    .map((value) => pickString(value))
+    .find((value): value is string => Boolean(value));
+}
+
+export function extractSessionInfoFromSearchParams(
+  searchParams: URLSearchParams,
+): WhatsAppSessionInfo {
+  const repeatedWabaIds = searchParams
+    .getAll("waba_ids")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const wabaId =
+    getOptionalParam(searchParams, "wabaId", "waba_id") ||
+    (repeatedWabaIds.length > 1 ? repeatedWabaIds[0] : undefined) ||
+    (() => {
+      const raw = searchParams.get("waba_ids");
+
+      if (!raw) return undefined;
+
+      try {
+        const parsed = JSON.parse(raw) as unknown;
+        return pickFirstString(parsed);
+      } catch {
+        return raw.split(",").map((value) => value.trim()).find(Boolean);
+      }
+    })();
+
+  return {
+    phoneNumberId: getOptionalParam(searchParams, "phoneNumberId", "phone_number_id"),
+    wabaId,
+    metaBusinessAccountId: getOptionalParam(
+      searchParams,
+      "metaBusinessAccountId",
+      "meta_business_account_id",
+      "business_id",
+    ),
+    displayPhoneNumber: getOptionalParam(
+      searchParams,
+      "displayPhoneNumber",
+      "display_phone_number",
+    ),
+    source: "query",
+  };
+}
+
+export function extractSessionInfoFromMessageEvent(
+  message: unknown,
+): WhatsAppSessionInfo | null {
+  const parsed = (message ?? {}) as EmbeddedSignupMessage;
+
+  if (parsed.type !== "WA_EMBEDDED_SIGNUP") {
+    return null;
+  }
+
+  const data = parsed.data ?? {};
+  const wabaId = pickString(data.waba_id) || pickFirstString(data.waba_ids);
+  const phoneNumberId = pickString(data.phone_number_id);
+  const metaBusinessAccountId = pickString(data.business_id);
+  const displayPhoneNumber = pickString(
+    data.display_phone_number ?? data.displayPhoneNumber,
+  );
+
+  if (!phoneNumberId && !wabaId && !metaBusinessAccountId && !displayPhoneNumber) {
+    return null;
+  }
+
+  return {
+    phoneNumberId,
+    wabaId,
+    metaBusinessAccountId,
+    displayPhoneNumber,
+    source: `message:${pickString(parsed.event) || "unknown"}`,
+    receivedAt: new Date().toISOString(),
+  };
+}
+
+export function parseStoredSessionInfo(raw?: string) {
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(decodeURIComponent(raw)) as WhatsAppSessionInfo;
+    return parsed;
+  } catch {
+    return null;
+  }
 }
 
 export async function completeEmbeddedSignup(payload: CompletePayload) {
