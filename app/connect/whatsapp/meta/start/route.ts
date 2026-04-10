@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { buildResultUrl } from "@/lib/whatsapp-connect";
+import { buildMetaSignupUrl, buildResultUrl } from "@/lib/whatsapp-connect";
 
 export async function GET(request: NextRequest) {
   const state = request.nextUrl.searchParams.get("state")?.trim();
@@ -14,12 +14,15 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const launchUrl = new URL("/connect/whatsapp", request.nextUrl.origin);
+  const metaUrl = buildMetaSignupUrl(state);
+  const relevantParams = Object.fromEntries(metaUrl.searchParams.entries());
 
-  launchUrl.searchParams.set("state", state);
-  launchUrl.searchParams.set("launch", "1");
+  console.log("[whatsapp-connect:start] metaUrl", metaUrl.toString());
+  console.log(
+    "[whatsapp-connect:start] hasDisplayPopup",
+    metaUrl.searchParams.get("display") === "popup",
+  );
+  console.log("[whatsapp-connect:start] params", relevantParams);
 
-  console.log("[whatsapp-connect:start] launchUrl", launchUrl.toString());
-
-  return NextResponse.redirect(launchUrl, 302);
+  return NextResponse.redirect(metaUrl, 302);
 }

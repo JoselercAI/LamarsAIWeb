@@ -25,6 +25,7 @@ export type WhatsAppSessionInfo = {
 };
 
 export const WHATSAPP_SESSION_COOKIE = "lamars_wa_session_info";
+export const WHATSAPP_SESSION_STORAGE_KEY = "lamars_wa_session_info";
 
 function required(name: string) {
   const value = process.env[name]?.trim();
