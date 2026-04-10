@@ -50,7 +50,7 @@ export function getWhatsAppConnectConfig() {
 }
 
 export function buildResultUrl(
-  status: "success" | "error",
+  status: "success" | "error" | "pending",
   params?: Record<string, string | undefined>,
 ) {
   const { connectBaseUrl } = getWhatsAppConnectConfig();

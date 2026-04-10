@@ -3,9 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   buildResultUrl,
   extractSessionInfoFromSearchParams,
-  getWhatsAppConnectConfig,
-  parseStoredSessionInfo,
-  WHATSAPP_SESSION_COOKIE,
 } from "@/lib/whatsapp-connect";
 
 export async function GET(request: NextRequest) {
@@ -54,127 +51,25 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const { apiBaseUrl, redirectUri } = getWhatsAppConnectConfig();
   const querySessionInfo = extractSessionInfoFromSearchParams(searchParams);
-  const storedSessionInfo = parseStoredSessionInfo(
-    request.cookies.get(WHATSAPP_SESSION_COOKIE)?.value,
-  );
-  const cookieSessionInfo =
-    storedSessionInfo?.state === state ? storedSessionInfo : null;
-  const finalSessionInfo = {
-    phoneNumberId:
-      querySessionInfo.phoneNumberId || cookieSessionInfo?.phoneNumberId,
-    wabaId: querySessionInfo.wabaId || cookieSessionInfo?.wabaId,
-    metaBusinessAccountId:
-      querySessionInfo.metaBusinessAccountId ||
-      cookieSessionInfo?.metaBusinessAccountId,
-    displayPhoneNumber:
-      querySessionInfo.displayPhoneNumber || cookieSessionInfo?.displayPhoneNumber,
-  };
-
-  console.log(
-    "[whatsapp-connect:callback] receivedSessionInfo",
-    cookieSessionInfo ?? querySessionInfo,
-  );
+  console.log("[whatsapp-connect:callback] receivedSessionInfo", querySessionInfo);
   console.log("[whatsapp-connect:callback] sessionFields", {
-    phoneNumberId: finalSessionInfo.phoneNumberId ?? null,
-    wabaId: finalSessionInfo.wabaId ?? null,
-    metaBusinessAccountId: finalSessionInfo.metaBusinessAccountId ?? null,
-    displayPhoneNumber: finalSessionInfo.displayPhoneNumber ?? null,
+    phoneNumberId: querySessionInfo.phoneNumberId ?? null,
+    wabaId: querySessionInfo.wabaId ?? null,
+    metaBusinessAccountId: querySessionInfo.metaBusinessAccountId ?? null,
+    displayPhoneNumber: querySessionInfo.displayPhoneNumber ?? null,
     querySource: querySessionInfo.source ?? null,
-    cookieSource: cookieSessionInfo?.source ?? null,
   });
 
-  const payload = {
-    state,
-    code,
-    redirectUri,
-    phoneNumberId: finalSessionInfo.phoneNumberId,
-    wabaId: finalSessionInfo.wabaId,
-    metaBusinessAccountId: finalSessionInfo.metaBusinessAccountId,
-    displayPhoneNumber: finalSessionInfo.displayPhoneNumber,
-  };
-
-  console.log("[whatsapp-connect:callback] backendPayload", payload);
-
-  try {
-    const response = await fetch(
-      `${apiBaseUrl}/integrations/whatsapp/embedded-signup/complete`,
-      {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify(payload),
-        cache: "no-store",
-      },
-    );
-
-    const backendBody = await response.text();
-    let backendJson: Record<string, unknown> | null = null;
-
-    console.log("[whatsapp-connect:callback] backendStatus", response.status);
-    console.log("[whatsapp-connect:callback] backendBody", backendBody);
-
-    if (backendBody) {
-      try {
-        backendJson = JSON.parse(backendBody) as Record<string, unknown>;
-      } catch {
-        backendJson = null;
-      }
-    }
-
-    if (!response.ok) {
-      const redirectResponse = NextResponse.redirect(
-        buildResultUrl("error", {
-          message:
-            (typeof backendJson?.message === "string" && backendJson.message) ||
-            (typeof backendJson?.error === "string" && backendJson.error) ||
-            backendBody ||
-            "Railway returned an error.",
-          backendStatus: String(response.status),
-          backendBody,
-        }),
-        302,
-      );
-
-      redirectResponse.cookies.set(WHATSAPP_SESSION_COOKIE, "", {
-        maxAge: 0,
-        path: "/",
-      });
-
-      return redirectResponse;
-    }
-
-    const redirectResponse = NextResponse.redirect(buildResultUrl("success"), 302);
-
-    redirectResponse.cookies.set(WHATSAPP_SESSION_COOKIE, "", {
-      maxAge: 0,
-      path: "/",
-    });
-
-    return redirectResponse;
-  } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Unable to complete WhatsApp connection.";
-
-    console.log("[whatsapp-connect:callback] completeError", message);
-
-    const redirectResponse = NextResponse.redirect(
-      buildResultUrl("error", {
-        message,
-        backendStatus: "network_error",
-      }),
-      302,
-    );
-
-    redirectResponse.cookies.set(WHATSAPP_SESSION_COOKIE, "", {
-      maxAge: 0,
-      path: "/",
-    });
-
-    return redirectResponse;
-  }
+  return NextResponse.redirect(
+    buildResultUrl("pending", {
+      code,
+      state,
+      phoneNumberId: querySessionInfo.phoneNumberId,
+      wabaId: querySessionInfo.wabaId,
+      metaBusinessAccountId: querySessionInfo.metaBusinessAccountId,
+      displayPhoneNumber: querySessionInfo.displayPhoneNumber,
+    }),
+    302,
+  );
 }
