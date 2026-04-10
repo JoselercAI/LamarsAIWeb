@@ -2,8 +2,9 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/Button";
 import { siteConfig } from "@/lib/site-config";
+import { getWhatsAppConnectConfig } from "@/lib/whatsapp-connect";
 
-import { EmbeddedSignupSessionCapture } from "./EmbeddedSignupSessionCapture";
+import { EmbeddedSignupLauncher } from "./EmbeddedSignupLauncher";
 import styles from "./whatsapp-connect.module.scss";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -23,11 +24,12 @@ export default async function WhatsAppConnectPage({
   searchParams: SearchParams;
 }) {
   const params = await searchParams;
+  const autoLaunch = getValue(params, "launch") === "1";
   const state = getValue(params, "state")?.trim();
+  const config = state ? getWhatsAppConnectConfig() : null;
 
   return (
     <main className={styles.page}>
-      {state ? <EmbeddedSignupSessionCapture state={state} /> : null}
       <p className={styles.eyebrow}>LAMARS onboarding</p>
       <h1 className={styles.title}>Connect your WhatsApp business account</h1>
       <p className={styles.lede}>
@@ -55,9 +57,15 @@ export default async function WhatsAppConnectPage({
             </ul>
 
             <div className={styles.actions}>
-              <Button href={`/connect/whatsapp/meta/start?state=${encodeURIComponent(state)}`}>
-                Continue with Meta
-              </Button>
+              {config ? (
+                <EmbeddedSignupLauncher
+                  autoLaunch={autoLaunch}
+                  embeddedSignupConfigId={config.embeddedSignupConfigId}
+                  metaAppId={config.metaAppId}
+                  redirectUri={config.redirectUri}
+                  state={state}
+                />
+              ) : null}
               <p className={styles.hint}>
                 If you opened this from the Lamars app, come back to the app
                 after the connection is complete.
