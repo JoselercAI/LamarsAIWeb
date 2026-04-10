@@ -20,6 +20,8 @@ export type WhatsAppSessionInfo = {
   wabaId?: string;
   metaBusinessAccountId?: string;
   displayPhoneNumber?: string;
+  receivedEmbeddedSignupEvent?: boolean;
+  rawEmbeddedSignupPayload?: string;
   source?: string;
   receivedAt?: string;
 };

@@ -30,6 +30,8 @@ export function EmbeddedSignupSessionCapture({ state }: { state: string }) {
 
       const stored = {
         ...sessionInfo,
+        receivedEmbeddedSignupEvent: true,
+        rawEmbeddedSignupPayload: JSON.stringify(parsed),
         state,
       };
       const serialized = JSON.stringify(stored);

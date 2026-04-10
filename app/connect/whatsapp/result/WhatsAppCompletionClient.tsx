@@ -14,6 +14,18 @@ import styles from "../whatsapp-connect.module.scss";
 
 type CompletionStatus = "pending" | "success" | "error";
 
+type DebugState = {
+  cookieValue?: string;
+  localStorageValue?: string;
+  sessionStorageValue?: string;
+  rawQueryParams: Record<string, string | undefined>;
+  phoneNumberIdSource?: string;
+  wabaIdSource?: string;
+  metaBusinessAccountIdSource?: string;
+  receivedEmbeddedSignupEvent?: boolean;
+  rawEmbeddedSignupPayload?: string;
+};
+
 type WhatsAppCompletionClientProps = {
   apiBaseUrl: string;
   appReturnUrl: string;
@@ -79,6 +91,21 @@ function mergeSessionInfo(
   };
 }
 
+function pickSource(
+  field: keyof Pick<
+    WhatsAppSessionInfo,
+    "phoneNumberId" | "wabaId" | "metaBusinessAccountId"
+  >,
+  initial: Partial<WhatsAppSessionInfo>,
+  localSession: WhatsAppSessionInfo | null,
+  cookieSession: WhatsAppSessionInfo | null,
+) {
+  if (initial[field]) return "query";
+  if (localSession?.[field]) return "localStorage";
+  if (cookieSession?.[field]) return "cookie";
+  return "none";
+}
+
 export function WhatsAppCompletionClient({
   apiBaseUrl,
   appReturnUrl,
@@ -121,6 +148,16 @@ export function WhatsAppCompletionClient({
     metaBusinessAccountId: initialMetaBusinessAccountId,
     displayPhoneNumber: initialDisplayPhoneNumber,
   });
+  const [debugState, setDebugState] = useState<DebugState>({
+    rawQueryParams: {
+      code,
+      state,
+      phoneNumberId: initialPhoneNumberId,
+      wabaId: initialWabaId,
+      metaBusinessAccountId: initialMetaBusinessAccountId,
+      displayPhoneNumber: initialDisplayPhoneNumber,
+    },
+  });
 
   const errorDetails = useMemo(
     () => ({
@@ -140,6 +177,12 @@ export function WhatsAppCompletionClient({
 
     const cookieValue = readCookieValue(WHATSAPP_SESSION_COOKIE);
     console.log("[whatsapp-connect:result] cookieValue", cookieValue ?? null);
+    const localStorageValue = window.localStorage.getItem(WHATSAPP_SESSION_STORAGE_KEY);
+    const sessionStorageValue = window.sessionStorage.getItem(
+      WHATSAPP_SESSION_STORAGE_KEY,
+    );
+    const localSession = parseStoredSessionInfo(localStorageValue || undefined);
+    const cookieSession = parseStoredSessionInfo(cookieValue);
 
     const mergedSession = mergeSessionInfo(
       {
@@ -150,10 +193,55 @@ export function WhatsAppCompletionClient({
       },
       cookieValue,
     );
+    const nextDebugState: DebugState = {
+      cookieValue,
+      localStorageValue: localStorageValue || undefined,
+      sessionStorageValue: sessionStorageValue || undefined,
+      rawQueryParams: {
+        code,
+        state,
+        phoneNumberId: initialPhoneNumberId,
+        wabaId: initialWabaId,
+        metaBusinessAccountId: initialMetaBusinessAccountId,
+        displayPhoneNumber: initialDisplayPhoneNumber,
+      },
+      phoneNumberIdSource: pickSource(
+        "phoneNumberId",
+        {
+          phoneNumberId: initialPhoneNumberId,
+        },
+        localSession,
+        cookieSession,
+      ),
+      wabaIdSource: pickSource(
+        "wabaId",
+        {
+          wabaId: initialWabaId,
+        },
+        localSession,
+        cookieSession,
+      ),
+      metaBusinessAccountIdSource: pickSource(
+        "metaBusinessAccountId",
+        {
+          metaBusinessAccountId: initialMetaBusinessAccountId,
+        },
+        localSession,
+        cookieSession,
+      ),
+      receivedEmbeddedSignupEvent:
+        localSession?.receivedEmbeddedSignupEvent ||
+        cookieSession?.receivedEmbeddedSignupEvent ||
+        false,
+      rawEmbeddedSignupPayload:
+        localSession?.rawEmbeddedSignupPayload ||
+        cookieSession?.rawEmbeddedSignupPayload,
+    };
 
     console.log("[whatsapp-connect:result] sessionFields", mergedSession);
     const sessionTimer = window.setTimeout(() => {
       setSessionFields(mergedSession);
+      setDebugState(nextDebugState);
     }, 0);
 
     const backendPayload = {
@@ -278,6 +366,42 @@ export function WhatsAppCompletionClient({
           </p>
         </div>
       ) : null}
+
+      <div className={styles.errorDetails}>
+        <p>
+          <strong>Query params:</strong>{" "}
+          {JSON.stringify(debugState.rawQueryParams)}
+        </p>
+        <p>
+          <strong>Cookie value:</strong> {debugState.cookieValue || "-"}
+        </p>
+        <p>
+          <strong>localStorage value:</strong> {debugState.localStorageValue || "-"}
+        </p>
+        <p>
+          <strong>sessionStorage value:</strong>{" "}
+          {debugState.sessionStorageValue || "-"}
+        </p>
+        <p>
+          <strong>phoneNumberId source:</strong>{" "}
+          {debugState.phoneNumberIdSource || "-"}
+        </p>
+        <p>
+          <strong>wabaId source:</strong> {debugState.wabaIdSource || "-"}
+        </p>
+        <p>
+          <strong>metaBusinessAccountId source:</strong>{" "}
+          {debugState.metaBusinessAccountIdSource || "-"}
+        </p>
+        <p>
+          <strong>receivedEmbeddedSignupEvent:</strong>{" "}
+          {String(debugState.receivedEmbeddedSignupEvent ?? false)}
+        </p>
+        <p>
+          <strong>rawEmbeddedSignupPayload:</strong>{" "}
+          {debugState.rawEmbeddedSignupPayload || "-"}
+        </p>
+      </div>
 
       <div className={styles.actions}>
         <Button href={appReturnUrl}>Back to Lamars</Button>
