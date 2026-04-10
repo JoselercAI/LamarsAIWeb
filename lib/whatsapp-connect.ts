@@ -57,7 +57,7 @@ export function buildMetaSignupUrl(state: string) {
 
   url.searchParams.set("client_id", metaAppId);
   url.searchParams.set("config_id", embeddedSignupConfigId);
-  url.searchParams.set("display", "page");
+  url.searchParams.set("display", "touch");
   url.searchParams.set("response_type", "code");
   url.searchParams.set("override_default_response_type", "true");
   url.searchParams.set("redirect_uri", redirectUri);
