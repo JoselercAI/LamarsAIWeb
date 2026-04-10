@@ -23,6 +23,10 @@ export default async function WhatsAppConnectResultPage({
   const params = await searchParams;
   const status = getValue(params, "status") === "success" ? "success" : "error";
   const message = getValue(params, "message");
+  const error = getValue(params, "error");
+  const errorCode = getValue(params, "error_code");
+  const errorReason = getValue(params, "error_reason");
+  const errorDescription = getValue(params, "error_description");
   const appReturnUrl =
     process.env.LAMARS_APP_RETURN_URL?.trim() || "lamars://whatsapp/connect";
 
@@ -49,6 +53,22 @@ export default async function WhatsAppConnectResultPage({
       </p>
 
       <section className={styles.card}>
+        {status === "error" && (error || errorCode || errorReason || errorDescription) ? (
+          <div className={styles.errorDetails}>
+            <p>
+              <strong>Error:</strong> {error || "-"}
+            </p>
+            <p>
+              <strong>Error code:</strong> {errorCode || "-"}
+            </p>
+            <p>
+              <strong>Error reason:</strong> {errorReason || "-"}
+            </p>
+            <p>
+              <strong>Error description:</strong> {errorDescription || "-"}
+            </p>
+          </div>
+        ) : null}
         <div className={styles.actions}>
           <Button href={appReturnUrl}>Back to Lamars</Button>
           {status === "error" ? (

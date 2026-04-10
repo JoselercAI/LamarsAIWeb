@@ -30,14 +30,21 @@ export function getWhatsAppConnectConfig() {
   };
 }
 
-export function buildResultUrl(status: "success" | "error", message?: string) {
+export function buildResultUrl(
+  status: "success" | "error",
+  params?: Record<string, string | undefined>,
+) {
   const { connectBaseUrl } = getWhatsAppConnectConfig();
   const url = new URL("/connect/whatsapp/result", connectBaseUrl);
 
   url.searchParams.set("status", status);
 
-  if (message) {
-    url.searchParams.set("message", message);
+  if (params) {
+    for (const [key, value] of Object.entries(params)) {
+      if (value) {
+        url.searchParams.set(key, value);
+      }
+    }
   }
 
   return url;

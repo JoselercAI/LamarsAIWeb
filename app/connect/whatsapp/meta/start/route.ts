@@ -7,10 +7,22 @@ export async function GET(request: NextRequest) {
 
   if (!state) {
     return NextResponse.redirect(
-      buildResultUrl("error", "Missing connection state."),
+      buildResultUrl("error", {
+        message: "Missing connection state.",
+      }),
       302,
     );
   }
 
-  return NextResponse.redirect(buildMetaSignupUrl(state), 302);
+  const metaUrl = buildMetaSignupUrl(state);
+  const relevantParams = Object.fromEntries(metaUrl.searchParams.entries());
+
+  console.log("[whatsapp-connect:start] metaUrl", metaUrl.toString());
+  console.log(
+    "[whatsapp-connect:start] hasDisplayPopup",
+    metaUrl.searchParams.get("display") === "popup",
+  );
+  console.log("[whatsapp-connect:start] params", relevantParams);
+
+  return NextResponse.redirect(metaUrl, 302);
 }
