@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
   buildResultUrl,
-  completeEmbeddedSignup,
   getOptionalParam,
   getWhatsAppConnectConfig,
 } from "@/lib/whatsapp-connect";
 
 export async function GET(request: NextRequest) {
+  console.log("[whatsapp-connect:callback] url", request.url);
+
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get("code")?.trim();
   const state = searchParams.get("state")?.trim();
@@ -51,31 +52,69 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const { redirectUri } = getWhatsAppConnectConfig();
+  const { apiBaseUrl, redirectUri } = getWhatsAppConnectConfig();
+  const payload = {
+    state,
+    code,
+    redirectUri,
+    phoneNumberId: getOptionalParam(searchParams, "phoneNumberId", "phone_number_id"),
+    wabaId: getOptionalParam(searchParams, "wabaId", "waba_id"),
+    metaBusinessAccountId: getOptionalParam(
+      searchParams,
+      "metaBusinessAccountId",
+      "meta_business_account_id",
+      "business_id",
+    ),
+    displayPhoneNumber: getOptionalParam(
+      searchParams,
+      "displayPhoneNumber",
+      "display_phone_number",
+    ),
+  };
+
+  console.log("[whatsapp-connect:callback] backendPayload", payload);
 
   try {
-    await completeEmbeddedSignup({
-      state,
-      code,
-      redirectUri,
-      phoneNumberId: getOptionalParam(
-        searchParams,
-        "phoneNumberId",
-        "phone_number_id",
-      ),
-      wabaId: getOptionalParam(searchParams, "wabaId", "waba_id"),
-      metaBusinessAccountId: getOptionalParam(
-        searchParams,
-        "metaBusinessAccountId",
-        "meta_business_account_id",
-        "business_id",
-      ),
-      displayPhoneNumber: getOptionalParam(
-        searchParams,
-        "displayPhoneNumber",
-        "display_phone_number",
-      ),
-    });
+    const response = await fetch(
+      `${apiBaseUrl}/integrations/whatsapp/embedded-signup/complete`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(payload),
+        cache: "no-store",
+      },
+    );
+
+    const backendBody = await response.text();
+    let backendJson: Record<string, unknown> | null = null;
+
+    console.log("[whatsapp-connect:callback] backendStatus", response.status);
+    console.log("[whatsapp-connect:callback] backendBody", backendBody);
+
+    if (backendBody) {
+      try {
+        backendJson = JSON.parse(backendBody) as Record<string, unknown>;
+      } catch {
+        backendJson = null;
+      }
+    }
+
+    if (!response.ok) {
+      return NextResponse.redirect(
+        buildResultUrl("error", {
+          message:
+            (typeof backendJson?.message === "string" && backendJson.message) ||
+            (typeof backendJson?.error === "string" && backendJson.error) ||
+            backendBody ||
+            "Railway returned an error.",
+          backendStatus: String(response.status),
+          backendBody,
+        }),
+        302,
+      );
+    }
 
     return NextResponse.redirect(buildResultUrl("success"), 302);
   } catch (error) {
@@ -89,6 +128,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(
       buildResultUrl("error", {
         message,
+        backendStatus: "network_error",
       }),
       302,
     );

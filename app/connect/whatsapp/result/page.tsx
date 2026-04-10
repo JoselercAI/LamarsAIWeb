@@ -23,6 +23,8 @@ export default async function WhatsAppConnectResultPage({
   const params = await searchParams;
   const status = getValue(params, "status") === "success" ? "success" : "error";
   const message = getValue(params, "message");
+  const backendStatus = getValue(params, "backendStatus");
+  const backendBody = getValue(params, "backendBody");
   const error = getValue(params, "error");
   const errorCode = getValue(params, "error_code");
   const errorReason = getValue(params, "error_reason");
@@ -53,19 +55,29 @@ export default async function WhatsAppConnectResultPage({
       </p>
 
       <section className={styles.card}>
-        {status === "error" && (error || errorCode || errorReason || errorDescription) ? (
+        {status === "error" &&
+        (backendStatus || message || backendBody || error || errorDescription) ? (
           <div className={styles.errorDetails}>
+            <p>
+              <strong>Backend status:</strong> {backendStatus || "-"}
+            </p>
+            <p>
+              <strong>Message:</strong> {message || "-"}
+            </p>
+            <p>
+              <strong>Backend body:</strong> {backendBody || "-"}
+            </p>
             <p>
               <strong>Error:</strong> {error || "-"}
             </p>
             <p>
-              <strong>Error code:</strong> {errorCode || "-"}
+              <strong>Error description:</strong> {errorDescription || "-"}
             </p>
             <p>
               <strong>Error reason:</strong> {errorReason || "-"}
             </p>
             <p>
-              <strong>Error description:</strong> {errorDescription || "-"}
+              <strong>Error code:</strong> {errorCode || "-"}
             </p>
           </div>
         ) : null}
